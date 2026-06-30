@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Utils/Log.h>
+
 #include <Config.h>
 #include <filesystem>
 

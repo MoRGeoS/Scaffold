@@ -13,12 +13,12 @@ namespace scaffold
         fs::path template_dir = fs::absolute(cfg.template_dir);
         if (!fs::is_directory(template_dir, ec) && !ec)
         {
-            std::cout << std::format("[error] '{}' is not a directory!\n", template_dir.string());
+            SCFLD_LOG_ERROR("Error?");
             exit(1);
         }
         else if (ec)
         {
-            std::cerr << std::format("[error] {0}\n", ec.message());
+            SCFLD_LOG_ERROR(ec.message());
             exit(1);
         }
 
@@ -29,7 +29,7 @@ namespace scaffold
         }
         else if (ec)
         {
-            std::cerr << std::format("[error] {0}\n", ec.message());
+            SCFLD_LOG_ERROR(ec.message());
             exit(1);
         }
 
@@ -41,12 +41,17 @@ namespace scaffold
             if (entry.is_directory(ec) && !ec)
             {
                 std::string name = entry.path().filename().string();
-                std::cout << std::format(" - {0}\n", name);
+                
+                std::format_to(
+                    std::ostream_iterator<char>(std::cout),
+                    " - {0}\n",
+                    name
+                );
                 count++;
             }
         }
 
-        std::cout << std::format("\n[info] Total amount of templates: {0}\n", count);
+        SCFLD_LOG_INFO(std::format("Total amount of templates: {}", count));
     }
 
     void SetupListTemplates(CLI::App& app)

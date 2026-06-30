@@ -108,7 +108,11 @@ namespace scaffold
     {
         while (true)
         {
-            std::cout << std::format("{0} {1}: ", message, defValue ? "[Y/n]" : "[y/N]");
+            std::format_to(
+                std::ostream_iterator<char>(std::cout),
+                "{} {}: ",
+                message, defValue ? "[Y/n]" : "[y/N]"
+            );
 
             std::string input;
             std::getline(std::cin, input);

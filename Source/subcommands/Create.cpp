@@ -1,11 +1,12 @@
 #include <SubCommands.h>
 
 #include <Config.h>
+#include <Utils/Log.h>
+
 #include <string>
 #include <vector>
 #include <map>
 #include <chrono>
-#include <iostream>
 #include <format>
 
 namespace scaffold
@@ -80,16 +81,16 @@ namespace scaffold
 
         Config cfg = LoadConfig(AppPath);
 
-        std::cout << std::format("[info] Project: {0}\n", project_name);
-        std::cout << std::format("[info] Template: {0}\n", template_name);
-        std::cout << std::format("[info] Output Directory: {0}\n", output_dir);
+        SCFLD_LOG_INFO(std::format("Project: {}", project_name));
+        SCFLD_LOG_INFO(std::format("Template: {}", template_name));
+        SCFLD_LOG_INFO(std::format("Output Directory: {}", output_dir));
 
         fs::path template_path = fs::absolute(cfg.template_dir) / template_name;
-        std::cout << std::format("[info] Template Path: {0}\n", template_path.string());
+        SCFLD_LOG_INFO(std::format("Template Path: {}", template_path.string()));
 
         if (!EnsureDirectoryExists(template_path))
         {
-            std::cout << std::format("[error] Failed to find template: '{}'", template_name);
+            SCFLD_LOG_ERROR("Failed to find template (Make sure you have the right template directory).");
             exit(1);
         }
 
@@ -98,19 +99,19 @@ namespace scaffold
         {
             if (!force)
             {
-                std::cout << std::format("[error] Output already exists: '{0}' (use -f to overwrite)\n", output_path.string());
+                SCFLD_LOG_ERROR("Output directory already exists (use -f/--force flag to overwrite)");
                 exit(1);
             }
 
             if (ConfirmAction(std::format("Do you want to remove files from '{0}'?", output_path.string()), false))
             {
-                std::cout << "[info] Removing existing output directory...\n";
+                SCFLD_LOG_INFO("Removing existing output directory...");
                 fs::remove_all(output_path, ec);
                 EnsureNotError(ec);
             }
         }
 
-        std::cout << "[info] Parsing variables...\n";
+        SCFLD_LOG_INFO("Parsing variables...");
         auto start = std::chrono::steady_clock::now();
 
         std::map<std::string, std::string> variables =
@@ -125,14 +126,14 @@ namespace scaffold
             auto pos = var.find('=');
             if (pos == std::string::npos)
             {
-                std::cout << std::format("[warn] Invalid global variable format: '%s' (expected KEY=VALUE, skipping).\n", var);
+                SCFLD_LOG_WARN(std::format("Invalid variable provided: '{}' (expected KEY=VALUE, skipping).", var));
                 continue;
             }
             variables[var.substr(0, pos)] = var.substr(pos + 1);
         }
 
         auto dur = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - start);
-        std::cout << std::format("[info] Global variables took {0} to parse\n", dur);
+        SCFLD_LOG_INFO(std::format("Global variables took {} to parse", dur));
 
         start = std::chrono::steady_clock::now();
         for (const auto& var : vars)
@@ -140,16 +141,16 @@ namespace scaffold
             auto pos = var.find('=');
             if (pos == std::string::npos)
             {
-                std::cout << std::format("[warn] Invalid custom variable format: '%s' (expected KEY=VALUE, skipping).\n", var);
+                SCFLD_LOG_WARN(std::format("Invalid variable provided: '{}' (expected KEY=VALUE, skipping).", var));
                 continue;
             }
             variables[var.substr(0, pos)] = var.substr(pos + 1);
         }
 
         dur = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - start);
-        std::cout << std::format("[info] Custom variables took {0} to parse\n", dur);
+        SCFLD_LOG_INFO(std::format("Custom variables took {} to parse", dur));
 
-        std::cout << "[info] Generating files...\n";
+        SCFLD_LOG_INFO("Generating files...");
         start = std::chrono::steady_clock::now();
 
         for (const auto& entry : fs::recursive_directory_iterator(template_path, ec))
@@ -171,17 +172,15 @@ namespace scaffold
             {
                 fs::create_directories(dest.parent_path(), ec);
                 EnsureNotError(ec);
-
-                std::cout << std::format("[info] Created - {0}\n", new_rel.string());
-
+                
                 ProcessFile(entry.path(), dest, variables);
+                SCFLD_LOG_INFO(std::format("Created - {}", new_rel.string()));
             }
         }
 
         dur = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - start);
-        std::cout << std::format("[info] Files took {0} to generate\n", dur);
-
-        std::cout << "[info] Done\n";
+        SCFLD_LOG_INFO(std::format("Files took {} to generate", dur));
+        SCFLD_LOG_INFO("Done");
     }
 
     void SetupCreate(CLI::App &app)

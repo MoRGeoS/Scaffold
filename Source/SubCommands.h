@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Utils.h>
-#include <CLI/App.hpp>
+#include <CLI/CLI.hpp>
 
 namespace scaffold
 {

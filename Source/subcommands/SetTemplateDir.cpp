@@ -2,7 +2,6 @@
 
 #include <Config.h>
 #include <string>
-#include <iostream>
 #include <format>
 
 namespace scaffold
@@ -18,26 +17,26 @@ namespace scaffold
         fs::path directory = fs::absolute(dir);
         if (!fs::is_directory(directory, ec) && !ec)
         {
-            std::cout << std::format("[error] Provided path is not a directory: '{0}'\n", directory.string());
+            SCFLD_LOG_ERROR(std::format("The path provided is not a directory: '{}'", directory.string()));
             exit(1);
         }
         else if (ec)
         {
-            std::cerr << std::format("[error] {0}\n", ec.message());
+            SCFLD_LOG_ERROR(ec.message());
             exit(1);
         }
 
         cfg.template_dir = directory.string();
-        std::cout << std::format("[info] Template Directory: '{0}'\n", directory.string());
+        SCFLD_LOG_INFO(std::format("Template Directory: '{}'", directory.string()));
 
-        std::cout << "[info] Saving config...\n";
+        SCFLD_LOG_INFO("Saving config...");
         if (!SaveConfig(AppPath, cfg))
         {
-            std::cout << std::format("[error] Failed to save config! (AppPath: {0})\n", AppPath.string());
+            SCFLD_LOG_ERROR("Failed to save config!");
             exit(1);
         }
 
-        std::cout << "[info] Done\n";
+        SCFLD_LOG_INFO("Done");
     }
 
     void SetupSetTemplateDir(CLI::App& app)

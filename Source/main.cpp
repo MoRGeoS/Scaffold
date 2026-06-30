@@ -1,7 +1,9 @@
 #include <CLI/CLI.hpp>
 
+#include <Utils/Log.h>
 #include <Config.h>
 #include <SubCommands.h>
+
 
 int main(int argc, char** argv)
 {
